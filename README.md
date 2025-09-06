@@ -1,2 +1,2 @@
-# synth-sandbox
+# Synth Sanbox
 JUCE &amp; audio experiments
