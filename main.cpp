@@ -21,7 +21,7 @@ int sineWave(void *outputBuffer, void *inputBuffer,
     auto buffer = static_cast<float *>(outputBuffer);
     for (int i = 0; i < nBufferFrames; i++) {
 
-        float s = std::sinf(state->phase) * Gain;
+        float s = std::sin(state->phase) * Gain;
         state->phase += state->phaseInc;
         if (state->phase >= 2.0 * std::numbers::pi) {
             state->phase -= 2.0 * std::numbers::pi;
