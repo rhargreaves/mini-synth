@@ -14,7 +14,11 @@ jobs:
         cmake-version: '4.1.1'
     - name: Use cmake
       run: cmake --version
-    - name: build
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install libasound2-dev libjack-jackd2-dev libpulse-dev
+    - name: Build
       run: |
         mkdir build
         cd build
