@@ -1,5 +1,7 @@
 #include <RtAudio.h>
 #include <iostream>
+#include <numbers>
+#include <cmath>
 
 constexpr unsigned int SampleRate = 44100;
 constexpr unsigned int BufferSize = 256;
@@ -8,7 +10,7 @@ constexpr float Gain = 0.2;
 
 struct SineState {
     float phase = 0.0;
-    float phaseInc = 2.0 * M_PI * 440.0 / static_cast<float>(SampleRate);
+    float phaseInc = 2.0 * std::numbers::pi * 440.0 / static_cast<float>(SampleRate);
 };
 
 int sineWave(void *outputBuffer, void *inputBuffer,
@@ -19,10 +21,10 @@ int sineWave(void *outputBuffer, void *inputBuffer,
     auto buffer = static_cast<float *>(outputBuffer);
     for (int i = 0; i < nBufferFrames; i++) {
 
-        float s = std::sin(state->phase) * Gain;
+        float s = std::sinf(state->phase) * Gain;
         state->phase += state->phaseInc;
-        if (state->phase >= 2.0 * M_PI) {
-            state->phase -= 2.0 * M_PI;
+        if (state->phase >= 2.0 * std::numbers::pi) {
+            state->phase -= 2.0 * std::numbers::pi;
         }
 
         for (int c = 0; c < Channels; c++) {
