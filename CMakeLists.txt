@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 4.0)
-project(sine_wave)
+project(mini_synth)
 
 set(CMAKE_CXX_STANDARD 23)
 
@@ -11,6 +11,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(rtaudio)
 
-add_executable(sine_wave main.cpp)
+add_executable(mini_synth main.cpp)
 
-target_link_libraries(sine_wave PRIVATE rtaudio)
+target_link_libraries(mini_synth PRIVATE rtaudio)
