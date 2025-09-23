@@ -1,12 +1,12 @@
 #include <iostream>
+#include <RtAudio.h>
 
 int main() {
-    const auto lang = "C++";
+    RtAudio audio;
 
-    std::cout << "Hello and welcome to " << lang << "!\n";
-
-    for (int i = 1; i <= 5; i++) {
-        std::cout << "i = " << i << std::endl;
+    std::cout << "Audio devices:" << std::endl;
+    for (auto& device : audio.getDeviceNames()) {
+        std::cout << device << std::endl;
     }
 
     return EXIT_SUCCESS;
