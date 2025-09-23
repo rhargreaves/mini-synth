@@ -6,7 +6,7 @@ Makes a nice smooooooth sine sound
 
 ## Dependencies
 
-* CMake
+* CMake 4.x
 * RtAudio (fetched by CMake)
 
 ## Getting Started
