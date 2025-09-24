@@ -18,7 +18,7 @@ constexpr float PeriodRad = 2.0f * std::numbers::pi;
 
 struct SineState {
     float phase = 0.0f;
-    float freq = 440.0f;
+    float freq = 0.0f;
     bool noteOn = false;
 };
 
@@ -81,7 +81,7 @@ int sineWave(void *outputBuffer, void *,
     auto &[phase, freq, noteOn] = *static_cast<SineState *>(userData);
     auto buffer = static_cast<float *>(outputBuffer);
     for (int i = 0; i < nBufferFrames; i++) {
-        const float sample = std::sin(phase) * Gain;
+        const float sample = noteOn ? std::sin(phase) * Gain : 0.0f;
         phase += PeriodRad * freq / static_cast<float>(SampleRate);
         if (phase >= PeriodRad) {
             phase -= PeriodRad;
@@ -142,7 +142,14 @@ int main() {
                 break;
             }
             if (auto noteIter = KeyMap.find(c); noteIter != KeyMap.end()) {
-                state.freq = noteIter->second.hz;
+                const auto newFreq = noteIter->second.hz;
+                if (newFreq != state.freq) {
+                    state.noteOn = true;
+                    state.freq = newFreq;
+                } else {
+                    state.noteOn = !state.noteOn;
+                }
+
                 printStatus("Note: "s + noteIter->second.name);
             }
         }
