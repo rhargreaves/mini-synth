@@ -2,6 +2,9 @@
 #include <iostream>
 #include <numbers>
 #include <cmath>
+#include <termios.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 constexpr unsigned int SampleRate = 44100;
 constexpr unsigned int BufferSize = 256;
@@ -14,6 +17,26 @@ struct SineState {
     float freq = 440.0f;
 };
 
+struct TermiosGuard {
+    termios old{};
+    bool ok = false;
+    TermiosGuard() {
+        if (tcgetattr(STDIN_FILENO, &old) == 0) ok = true;
+        termios raw = old;
+        raw.c_lflag &= ~(ICANON | ECHO);   // raw-ish: no canonical, no echo
+        raw.c_cc[VMIN]  = 0;               // non-blocking read
+        raw.c_cc[VTIME] = 0;
+        tcsetattr(STDIN_FILENO, TCSANOW, &raw);
+        int fl = fcntl(STDIN_FILENO, F_GETFL, 0);
+        fcntl(STDIN_FILENO, F_SETFL, fl | O_NONBLOCK); // non-blocking
+    }
+    ~TermiosGuard() {
+        if (ok) tcsetattr(STDIN_FILENO, TCSANOW, &old);
+        int fl = fcntl(STDIN_FILENO, F_GETFL, 0);
+        fcntl(STDIN_FILENO, F_SETFL, fl & ~O_NONBLOCK);
+    }
+};
+
 int sineWave(void *outputBuffer, void *,
              unsigned int nBufferFrames,
              double, RtAudioStreamStatus, void *userData) {
@@ -21,7 +44,7 @@ int sineWave(void *outputBuffer, void *,
     auto &[phase, freq] = *static_cast<SineState *>(userData);
     auto buffer = static_cast<float *>(outputBuffer);
     for (int i = 0; i < nBufferFrames; i++) {
-        float sample = std::sin(phase) * Gain;
+        const float sample = std::sin(phase) * Gain;
         phase += PeriodRad * freq / static_cast<float>(SampleRate);
         if (phase >= PeriodRad) {
             phase -= PeriodRad;
@@ -36,6 +59,7 @@ int sineWave(void *outputBuffer, void *,
 
 int main() {
     RtAudio audio;
+    TermiosGuard termiosGuard;
 
     if (audio.getDeviceCount() == 0) {
         std::cerr << "No audio devices found.\n";
@@ -46,10 +70,8 @@ int main() {
         .deviceId = audio.getDefaultOutputDevice(),
         .nChannels = Channels,
         .firstChannel = 0};
-    unsigned int bufferSize = BufferSize;
-
     SineState state;
-
+    unsigned int bufferSize = BufferSize;
     auto res = audio.openStream(&outParams,
         nullptr, RTAUDIO_FLOAT32,
                                 SampleRate, &bufferSize, &sineWave, &state);
@@ -63,9 +85,28 @@ int main() {
         return EXIT_FAILURE;
     }
 
-    char input;
-    std::cout << "Playing... press <enter> to quit.\n";
-    std::cin.get(input);
+    std::cout << "Playing... press <q> to quit.\n";
+    bool running = true;
+    while (running) {
+        unsigned char buf[32];
+        ssize_t n = read(STDIN_FILENO, buf, sizeof(buf));
+        if (n > 0) {
+            for (ssize_t i = 0; i < n; ++i) {
+                unsigned char c = buf[i];
+                // handle key c
+                if (c == 'q') {
+                    running = false;
+                }
+                // map keys to notes here
+                if (c == 'z') {
+                    // set to middle C (C4)
+                    state.freq = 261.625565f;
+                }
+            }
+        }
+        // do other work or sleep a bit
+        usleep(1000); // 1 ms
+    }
 
     if (audio.isStreamRunning()) {
         audio.stopStream();
