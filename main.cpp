@@ -18,13 +18,13 @@ int sineWave(void *outputBuffer, void *,
              unsigned int nBufferFrames,
              double, RtAudioStreamStatus, void *userData) {
 
-    auto& state = *static_cast<SineState *>(userData);
+    auto &[phase, freq] = *static_cast<SineState *>(userData);
     auto buffer = static_cast<float *>(outputBuffer);
     for (int i = 0; i < nBufferFrames; i++) {
-        float sample = std::sin(state.phase) * Gain;
-        state.phase += PeriodRad * state.freq / static_cast<float>(SampleRate);
-        if (state.phase >= PeriodRad) {
-            state.phase -= PeriodRad;
+        float sample = std::sin(phase) * Gain;
+        phase += PeriodRad * freq / static_cast<float>(SampleRate);
+        if (phase >= PeriodRad) {
+            phase -= PeriodRad;
         }
 
         for (int c = 0; c < Channels; c++) {
