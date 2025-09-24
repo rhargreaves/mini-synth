@@ -17,6 +17,7 @@ constexpr float PeriodRad = 2.0f * std::numbers::pi;
 struct SineState {
     float phase = 0.0f;
     float freq = 440.0f;
+    bool noteOn = false;
 };
 
 struct NoteInfo {
@@ -75,7 +76,7 @@ int sineWave(void *outputBuffer, void *,
              unsigned int nBufferFrames,
              double, RtAudioStreamStatus, void *userData) {
 
-    auto &[phase, freq] = *static_cast<SineState *>(userData);
+    auto &[phase, freq, noteOn] = *static_cast<SineState *>(userData);
     auto buffer = static_cast<float *>(outputBuffer);
     for (int i = 0; i < nBufferFrames; i++) {
         const float sample = std::sin(phase) * Gain;
@@ -119,7 +120,12 @@ int main() {
         return EXIT_FAILURE;
     }
 
-    std::cout << "Playing... press <q> to quit.\n";
+    std::cout << "Press q to quit.\n";
+    std::cout << "Press a key to play note:\n";
+    std::cout << "  s d   g h j\n";
+    std::cout << " z x c v b n m\n";
+    std::cout << "Re-press key to stop note\n"  << std::flush;
+
     bool running = true;
     while (running) {
         unsigned char buf[32];
