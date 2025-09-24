@@ -122,11 +122,10 @@ int main() {
         return EXIT_FAILURE;
     }
 
-    std::cout << "Press q to quit.\n";
-    std::cout << "Press a key to play note:\n";
+    std::cout << "Press a key to play note (or 'q' to quit):\n";
     std::cout << "  s d   g h j\n";
     std::cout << " z x c v b n m\n";
-    std::cout << "Re-press key to stop note\n"  << std::flush;
+    std::cout << "Re-press key to stop note.\n"  << std::flush;
 
     bool running = true;
     while (running) {

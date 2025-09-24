@@ -20,9 +20,9 @@ Launch the program and then use the keyboard to play notes.
 
 ```
 $ mini_synth
-Press q to quit.
-Press a key to play note:
+
+Press a key to play note (or 'q' to quit):
   s d   g h j
  z x c v b n m
-Re-press key to stop note
+Re-press key to stop note.
 ```
