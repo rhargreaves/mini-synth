@@ -2,6 +2,8 @@
 #include <iostream>
 #include <numbers>
 #include <cmath>
+#include <thread>
+#include <chrono>
 #include <termios.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -128,24 +130,23 @@ int main() {
 
     bool running = true;
     while (running) {
-        unsigned char buf[32];
-        ssize_t n = read(STDIN_FILENO, buf, sizeof(buf));
-        if (n > 0) {
-            for (ssize_t i = 0; i < n; ++i) {
-                unsigned char c = buf[i];
-                // handle key c
-                if (c == 'q') {
-                    running = false;
-                }
-                auto noteIter = KeyMap.find(c);
-                if (noteIter != KeyMap.end()) {
-                    state.freq = noteIter->second.hz;
-                    printStatus("Note: "s + noteIter->second.name);
-                }
+        std::array<unsigned char, 32> buf{};
+        auto n = read(STDIN_FILENO, buf.data(), buf.size());
+        if (n <= 0) {
+            continue;
+        }
+        for (ssize_t i = 0; i < n; ++i) {
+            unsigned char c = buf[i];
+            if (c == 'q') {
+                running = false;
+                break;
+            }
+            if (auto noteIter = KeyMap.find(c); noteIter != KeyMap.end()) {
+                state.freq = noteIter->second.hz;
+                printStatus("Note: "s + noteIter->second.name);
             }
         }
-        // do other work or sleep a bit
-        usleep(1000); // 1 ms
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 
     if (audio.isStreamRunning()) {
