@@ -6,6 +6,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+using namespace std::string_literals;
+
 constexpr unsigned int SampleRate = 44100;
 constexpr unsigned int BufferSize = 256;
 constexpr unsigned int Channels = 2;
@@ -15,6 +17,38 @@ constexpr float PeriodRad = 2.0f * std::numbers::pi;
 struct SineState {
     float phase = 0.0f;
     float freq = 440.0f;
+};
+
+struct NoteInfo {
+    float hz;
+    const char* name;
+};
+
+constexpr float midiToHz(const int midi) {
+    return 440.0f * std::exp2((static_cast<float>(midi) - 69.0f) / 12.0f);
+}
+
+void printStatus(const std::string& s) {
+    static std::size_t last_len = 0;
+    std::cout << '\r' << s;
+    if (last_len > s.size()) std::cout << std::string(last_len - s.size(), ' ');
+    std::cout << std::flush;
+    last_len = s.size();
+}
+
+static const std::unordered_map<unsigned char, NoteInfo> KeyMap = {
+    {'z', {midiToHz(60), "C4"}},
+    {'x', {midiToHz(62), "D4"}},
+    {'c', {midiToHz(64), "E4"}},
+    {'v', {midiToHz(65), "F4"}},
+    {'b', {midiToHz(67), "G4"}},
+    {'n', {midiToHz(69), "A4"}},
+    {'m', {midiToHz(71), "B4"}},
+    {'s', {midiToHz(61), "C#4"}},
+    {'d', {midiToHz(63), "D#4"}},
+    {'g', {midiToHz(66), "F#4"}},
+    {'h', {midiToHz(68), "G#4"}},
+    {'j', {midiToHz(70), "A#4"}},
 };
 
 struct TermiosGuard {
@@ -97,10 +131,10 @@ int main() {
                 if (c == 'q') {
                     running = false;
                 }
-                // map keys to notes here
-                if (c == 'z') {
-                    // set to middle C (C4)
-                    state.freq = 261.625565f;
+                auto noteIter = KeyMap.find(c);
+                if (noteIter != KeyMap.end()) {
+                    state.freq = noteIter->second.hz;
+                    printStatus("Note: "s + noteIter->second.name);
                 }
             }
         }
